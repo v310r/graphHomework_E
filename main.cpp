@@ -3,6 +3,7 @@
 #include <queue>
 #include <stack>
 #include <algorithm>
+#include <fstream>
 
 #define INF 10000
 
@@ -16,27 +17,32 @@ private:
     std::vector<std::vector<weight>> matrix_of_adjacency;
     int vertexes;
     int edges;
+    std::fstream file;
 
 public:
 
+    Graph():file("data.txt",std::fstream::in | std::fstream::out | std::fstream::app) {
+
+    }
+
     void input(){
-        std::cout<<"Enter number of vertexes: ";
-        std::cin>> vertexes;
-        std::cout<<"Enter number of edges: ";
-        std::cin>> edges;
+        file >> vertexes;
+        std::cout<<"Enter number of vertexes: "<<vertexes<<"\n";
+        file >> edges;
+        std::cout<<"Enter number of edges: "<<edges<<"\n";
         matrix_of_adjacency.resize(vertexes);
         for(auto& line: matrix_of_adjacency){
             line.resize(edges);
         }
         std::cout<<"Enter weights according to your graph.\n";
+        int temp;
         for(int i = 0; i < vertexes; ++i){
             for(int j = 0; j < edges; ++j){
-                std::cout<<i<<"-->"<<j<<": ";
-                int positive;
+                file>>temp;
+                std::cout<<i<<"-->"<<j<<": "<<temp<<"  ";
                 // for situations as i-->i enter 0 and if you can't reach certain node with 1 leap enter negative number
-                std::cin>>positive; 
-                if(positive < 0){matrix_of_adjacency[i][j] = INF;continue;}
-                matrix_of_adjacency[i][j] = positive;    
+                if(temp < 0){matrix_of_adjacency[i][j] = INF;continue;}
+                matrix_of_adjacency[i][j] = temp;    
             }
         }
         std::cout<<std::endl;
@@ -119,6 +125,7 @@ public:
             distance = INF;
         }
         Lengths[beginning] = 0;
+        std::vector<vertex> path(vertexes);
         std::vector<bool> used(vertexes,false);
         vertex currentNode = beginning;
         for(int i = 0; i<vertexes; ++i){
@@ -127,17 +134,24 @@ public:
             for(int neighbour = 0; neighbour<edges;++neighbour){
                 // useless to do something with the same node
                 if(currentNode == neighbour)continue;
-                else{
-                    if(neighbour_Approved(currentNode,neighbour)){
-                        Lengths[neighbour] = std::min(Lengths[neighbour],minLength+matrix_of_adjacency[currentNode][neighbour]);
-                    }
-                }
+
+                if(!neighbour_Approved(currentNode,neighbour)) continue;
+
+                //update path
+                if( (minLength+matrix_of_adjacency[currentNode][neighbour]) < Lengths[neighbour]) path[neighbour] = currentNode;
+
+                Lengths[neighbour] = std::min(Lengths[neighbour],minLength+matrix_of_adjacency[currentNode][neighbour]);
+
             }
         }
-        std::cout<<"Distances: ";
-        for(auto length: Lengths){
-            std::cout<<length<<" ";
+        std::cout<< "\nShortest distance from node "<<beginning<<" to node "<<end<<" is: "<<Lengths[end];
+        std::cout<<"\nThe path is: ";
+        std::cout<<end<<"<--";
+        int current;
+        for(current = path[end];current>beginning;current = path[current]){
+            std::cout<<current<<"<--";
         }
+        std::cout<<current<<"\n";
     }
 };
 
@@ -145,7 +159,7 @@ int main(){
     Graph g;
     g.input();
     g.print();
-    //g.print_bfs(1);
-    //g.print_dfs(1);
+    g.print_bfs(1);
+    g.print_dfs(1);
     g.print_Dijkstra(0,4);
 }
