@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <algorithm>
 
 #define INF 10000
 
@@ -95,12 +96,56 @@ public:
         }
         std::cout<<std::endl;
     }
+
+    int getUnusedMinElement_andHisIndex(std::vector<weight>& L,std::vector<bool>& used,vertex& n){
+        int temp{INF};
+        for(int i = 0;i<vertexes;++i){
+            if((L[i]<temp) && (!used[i])){
+                temp = L[i];
+                n = i;
+            }
+        }
+
+        return temp;
+    }
+
+    bool neighbour_Approved(int currentNode, int neighbour){
+        return matrix_of_adjacency[currentNode][neighbour] != INF;
+    }
+
+    void print_Dijkstra(vertex beginning, vertex end){
+        std::vector<weight> Lengths(vertexes);
+        for(auto& distance:Lengths){
+            distance = INF;
+        }
+        Lengths[beginning] = 0;
+        std::vector<bool> used(vertexes,false);
+        vertex currentNode = beginning;
+        for(int i = 0; i<vertexes; ++i){
+            int minLength = getUnusedMinElement_andHisIndex(Lengths,used,currentNode);
+            used[currentNode] = true;
+            for(int neighbour = 0; neighbour<edges;++neighbour){
+                // useless to do something with the same node
+                if(currentNode == neighbour)continue;
+                else{
+                    if(neighbour_Approved(currentNode,neighbour)){
+                        Lengths[neighbour] = std::min(Lengths[neighbour],minLength+matrix_of_adjacency[currentNode][neighbour]);
+                    }
+                }
+            }
+        }
+        std::cout<<"Distances: ";
+        for(auto length: Lengths){
+            std::cout<<length<<" ";
+        }
+    }
 };
 
 int main(){
     Graph g;
     g.input();
     g.print();
-    g.print_bfs(1);
-    g.print_dfs(1);
+    //g.print_bfs(1);
+    //g.print_dfs(1);
+    g.print_Dijkstra(0,4);
 }
